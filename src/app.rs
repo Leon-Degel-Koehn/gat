@@ -26,6 +26,7 @@ pub struct App {
     pub username_input: String, // the currently being edited json key.
     pub email_input: String,    // the currently being edited json value.
     pub token_input: String,    // the currently being edited json value.
+    // TODO: make this a hashmap such that you can re-select stuff for editing later on
     pub entries: Vec<Entry>, // The representation of our key and value pairs with serde Serialize support
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub currently_editing: Option<CurrentlyEditing>, // the optional state containing which of the key or value pair the user is editing. It is an option, because when the user is not directly editing a key-value pair, this will be set to `None`.
@@ -42,15 +43,6 @@ impl App {
             current_screen: CurrentScreen::Main,
             currently_editing: None,
         }
-    }
-
-    pub fn save_key_value(&mut self) {
-        self.entries.push(Entry {
-            alias: self.alias_input.clone(),
-            username: self.username_input.clone(),
-            email: self.email_input.clone(),
-            pa_token: self.token_input.clone(),
-        });
     }
 
     pub fn toggle_editing(&mut self) {
@@ -71,13 +63,23 @@ impl App {
     }
 
     // Write all entries to the corresponding files
-    pub fn store_entries(&self) {
+    pub fn store_entries(&mut self) {
         // TODO: implement properly, for now just output everything to the terminal
-        for entry in &self.entries {
-            println!("Alias: {}", entry.alias);
-            println!("Username: {}", entry.username);
-            println!("Email: {}", entry.email);
-            println!("Token: {}", entry.pa_token);
-        }
+        let created_entry = Entry {
+            alias: self.alias_input.clone(),
+            username: self.username_input.clone(),
+            email: self.email_input.clone(),
+            pa_token: self.token_input.clone(),
+        };
+        self.entries.push(created_entry);
+    }
+
+    pub fn clear(&mut self) {
+        self.alias_input = String::new();
+        self.alias_input = String::new();
+        self.username_input = String::new();
+        self.email_input = String::new();
+        self.token_input = String::new();
+        self.currently_editing = None;
     }
 }

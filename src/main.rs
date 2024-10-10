@@ -70,6 +70,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     _ => {}
                 },
                 CurrentScreen::Editing if key.kind == KeyEventKind::Press => match key.code {
+                    KeyCode::Enter => {
+                        app.store_entries();
+                        app.clear();
+                        app.current_screen = CurrentScreen::Main;
+                    }
                     KeyCode::Backspace => {
                         if let Some(editing) = &app.currently_editing {
                             match editing {

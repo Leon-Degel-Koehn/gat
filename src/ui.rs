@@ -2,14 +2,13 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Wrap},
     Frame,
 };
 
 use crate::app::{App, CurrentScreen, CurrentlyEditing};
 
 pub fn ui(frame: &mut Frame, app: &App) {
-    // Create the layout sections.
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -24,7 +23,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .style(Style::default());
 
     let title = Paragraph::new(Text::styled(
-        "Create New Json",
+        "Manage Git Profiles and Access Tokens",
         Style::default().fg(Color::Green),
     ))
     .block(title_block);
@@ -49,12 +48,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             CurrentScreen::Editing => {
                 Span::styled("Editing Mode", Style::default().fg(Color::Yellow))
             }
-            CurrentScreen::Injecting => {
-                Span::styled("Inject Mode", Style::default().fg(Color::Green))
-            }
-            CurrentScreen::Deleting => {
-                Span::styled("Delete Mode", Style::default().fg(Color::Green))
-            }
+            _ => Span::styled("Normal Mode", Style::default().fg(Color::Green)),
         }
         .to_owned(),
         // A white divider bar to separate the two sections
@@ -64,7 +58,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             if let Some(editing) = &app.currently_editing {
                 match editing {
                     CurrentlyEditing::Username => {
-                        Span::styled("Editing Json Key", Style::default().fg(Color::Green))
+                        Span::styled("Editing username", Style::default().fg(Color::Green))
                     }
                     CurrentlyEditing::Email => {
                         Span::styled("Editing email", Style::default().fg(Color::Green))
@@ -88,18 +82,15 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let current_keys_hint = {
         match app.current_screen {
             CurrentScreen::Main => Span::styled(
-                "(q) to quit / (e) to make new pair",
+                "(q) to quit / (%) to create a new profile",
                 Style::default().fg(Color::Red),
             ),
             CurrentScreen::Editing => Span::styled(
-                "(ESC) to cancel/(Tab) to switch boxes/enter to complete",
+                "(ESC) to cancel/(Tab) to switch boxes/(Enter) to complete",
                 Style::default().fg(Color::Red),
             ),
             //TODO: implement correct mappings for the below modes, placeholders for now
-            _ => Span::styled(
-                "(ESC) to cancel/(Tab) to switch boxes/enter to complete",
-                Style::default().fg(Color::Red),
-            ),
+            _ => Span::styled("mappings tbd", Style::default().fg(Color::Red)),
         }
     };
 
@@ -116,33 +107,50 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
     if let Some(editing) = &app.currently_editing {
         let popup_block = Block::default()
-            .title("Enter a new key-value pair")
-            .borders(Borders::NONE)
+            .title("Edit Git Profile")
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(Color::White))
             .style(Style::default().bg(Color::DarkGray));
 
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(popup_block, area);
 
         let popup_chunks = Layout::default()
-            .direction(Direction::Horizontal)
+            .direction(Direction::Vertical)
             .margin(1)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .constraints([
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+            ])
             .split(area);
 
-        let mut key_block = Block::default().title("Key").borders(Borders::ALL);
-        let mut value_block = Block::default().title("Value").borders(Borders::ALL);
+        let mut alias_block = Block::default()
+            .title("Profile Alias (not visible in git)")
+            .borders(Borders::ALL);
+        let mut username_block = Block::default().title("Username").borders(Borders::ALL);
+        let mut email_block = Block::default().title("Email").borders(Borders::ALL);
+        let mut token_block = Block::default().title("PA-Token").borders(Borders::ALL);
 
         let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
 
         match editing {
-            _ => value_block = value_block.style(active_style),
+            CurrentlyEditing::Alias => alias_block = alias_block.style(active_style),
+            CurrentlyEditing::Username => username_block = username_block.style(active_style),
+            CurrentlyEditing::Email => email_block = email_block.style(active_style),
+            CurrentlyEditing::Token => token_block = token_block.style(active_style),
         };
 
-        let alias_text = Paragraph::new(app.alias_input.clone()).block(key_block);
+        let alias_text = Paragraph::new(app.alias_input.clone()).block(alias_block);
+        let username_text = Paragraph::new(app.username_input.clone()).block(username_block);
+        let email_text = Paragraph::new(app.email_input.clone()).block(email_block);
+        let token_text = Paragraph::new(app.token_input.clone()).block(token_block);
         frame.render_widget(alias_text, popup_chunks[0]);
-
-        let username_text = Paragraph::new(app.username_input.clone()).block(value_block);
         frame.render_widget(username_text, popup_chunks[1]);
+        frame.render_widget(email_text, popup_chunks[2]);
+        frame.render_widget(token_text, popup_chunks[3]);
     }
 
     /*
