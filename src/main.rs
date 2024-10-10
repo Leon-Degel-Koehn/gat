@@ -74,6 +74,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.current_screen = CurrentScreen::Editing;
                         app.currently_editing = Some(CurrentlyEditing::Alias);
                     }
+                    KeyCode::Char('d') => match app.selected_index {
+                        Some(idx) => app.current_screen = CurrentScreen::Deleting,
+                        _ => {}
+                    },
                     KeyCode::Char('j') => match app.selected_index {
                         None => {
                             if app.entries.len() > 0 {
@@ -104,6 +108,16 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     },
                     KeyCode::Char('q') => {
                         return Ok(true);
+                    }
+                    _ => {}
+                },
+                CurrentScreen::Deleting => match key.code {
+                    KeyCode::Char('y') => {
+                        app.delete_current_entry();
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                    KeyCode::Char('n') => {
+                        app.current_screen = CurrentScreen::Main;
                     }
                     _ => {}
                 },

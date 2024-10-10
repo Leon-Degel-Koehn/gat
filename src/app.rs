@@ -26,7 +26,6 @@ pub struct App {
     pub username_input: String, // the currently being edited json key.
     pub email_input: String,    // the currently being edited json value.
     pub token_input: String,    // the currently being edited json value.
-    // TODO: make this a hashmap such that you can re-select stuff for editing later on
     pub entries: Vec<Entry>, // The representation of our key and value pairs with serde Serialize support
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub selected_index: Option<usize>,
@@ -91,6 +90,18 @@ impl App {
                 "Username: {}\n\nEmail: {}\n\nToken: {}",
                 self.entries[idx].username, self.entries[idx].email, self.entries[idx].pa_token
             ),
+        }
+    }
+
+    pub fn delete_current_entry(&mut self) {
+        match self.selected_index {
+            Some(idx) => {
+                self.entries.remove(idx);
+                if self.entries.len() <= idx {
+                    self.selected_index = None;
+                }
+            }
+            None => {}
         }
     }
 }

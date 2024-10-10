@@ -1,6 +1,6 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
+    style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap},
     Frame,
@@ -91,15 +91,18 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let current_keys_hint = {
         match app.current_screen {
             CurrentScreen::Main => Span::styled(
-                "(q) to quit / (%) to create a new profile",
+                "(q) to quit / (%) to create a new profile/ (d) to delete selected profile",
                 Style::default().fg(Color::Red),
             ),
             CurrentScreen::Editing => Span::styled(
                 "(ESC) to cancel/(Tab) to switch boxes/(Enter) to complete",
                 Style::default().fg(Color::Red),
             ),
+            CurrentScreen::Deleting => {
+                Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
+            }
             //TODO: implement correct mappings for the below modes, placeholders for now
-            _ => Span::styled("mappings tbd", Style::default().fg(Color::Red)),
+            _ => Span::styled("[no help implemented]", Style::default().fg(Color::Red)),
         }
     };
 
@@ -162,18 +165,17 @@ pub fn ui(frame: &mut Frame, app: &App) {
         frame.render_widget(token_text, popup_chunks[3]);
     }
 
-    /*
-    if let CurrentScreen::Exiting = app.current_screen {
-        frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
+    if let CurrentScreen::Deleting = app.current_screen {
         let popup_block = Block::default()
-            .title("Y/N")
-            .borders(Borders::NONE)
+            .title("y/n")
+            .borders(Borders::ALL)
             .style(Style::default().bg(Color::DarkGray));
 
         let exit_text = Text::styled(
-            "Would you like to output the buffer as json? (y/n)",
-            Style::default().fg(Color::Red),
-        );
+            "Do you really want to delete the current profile?",
+            Style::default(),
+        )
+        .add_modifier(Modifier::BOLD);
         // the `trim: false` will stop the text from being cut off when over the edge of the block
         let exit_paragraph = Paragraph::new(exit_text)
             .block(popup_block)
@@ -182,7 +184,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(exit_paragraph, area);
     }
-    */
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
