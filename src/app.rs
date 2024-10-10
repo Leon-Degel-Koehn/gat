@@ -29,6 +29,7 @@ pub struct App {
     // TODO: make this a hashmap such that you can re-select stuff for editing later on
     pub entries: Vec<Entry>, // The representation of our key and value pairs with serde Serialize support
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
+    pub selected_index: Option<usize>,
     pub currently_editing: Option<CurrentlyEditing>, // the optional state containing which of the key or value pair the user is editing. It is an option, because when the user is not directly editing a key-value pair, this will be set to `None`.
 }
 
@@ -41,6 +42,7 @@ impl App {
             token_input: String::new(),
             entries: Vec::new(),
             current_screen: CurrentScreen::Main,
+            selected_index: None,
             currently_editing: None,
         }
     }

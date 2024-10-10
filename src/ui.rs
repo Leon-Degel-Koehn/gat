@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, BorderType, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap},
     Frame,
 };
 
@@ -38,9 +38,10 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ))));
     }
 
-    let list = List::new(list_items);
+    let mut list_state = ListState::default().with_selected(app.selected_index);
+    let list = List::new(list_items).highlight_symbol(">>");
+    frame.render_stateful_widget(list, chunks[1], &mut list_state);
 
-    frame.render_widget(list, chunks[1]);
     let current_navigation_text = vec![
         // The first half of the text
         match app.current_screen {

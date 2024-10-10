@@ -51,6 +51,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
     loop {
+        // adjust rendering params specific to the view
+        match app.current_screen {
+            CurrentScreen::Main => {
+                if app.selected_index == None && app.entries.len() > 0 {
+                    app.selected_index = Some(0);
+                }
+            }
+            _ => {}
+        }
+
         terminal.draw(|f| ui(f, app))?;
 
         if let Event::Key(key) = event::read()? {
@@ -64,6 +74,34 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.current_screen = CurrentScreen::Editing;
                         app.currently_editing = Some(CurrentlyEditing::Alias);
                     }
+                    KeyCode::Char('j') => match app.selected_index {
+                        None => {
+                            if app.entries.len() > 0 {
+                                app.selected_index = Some(0)
+                            }
+                        }
+                        Some(selected_index) => {
+                            app.selected_index = if selected_index + 1 < app.entries.len() {
+                                Some(selected_index + 1)
+                            } else {
+                                Some(app.entries.len() - 1)
+                            }
+                        }
+                    },
+                    KeyCode::Char('k') => match app.selected_index {
+                        None => {
+                            if app.entries.len() > 0 {
+                                app.selected_index = Some(0)
+                            }
+                        }
+                        Some(selected_index) => {
+                            app.selected_index = if selected_index > 0 {
+                                Some(selected_index - 1)
+                            } else {
+                                Some(0)
+                            }
+                        }
+                    },
                     KeyCode::Char('q') => {
                         return Ok(true);
                     }
