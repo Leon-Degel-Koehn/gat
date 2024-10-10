@@ -29,8 +29,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
     .block(title_block);
 
     frame.render_widget(title, chunks[0]);
-    let mut list_items = Vec::<ListItem>::new();
 
+    let mut list_items = Vec::<ListItem>::new();
     for entry in &app.entries {
         list_items.push(ListItem::new(Line::from(Span::styled(
             format!("{}", entry.alias),
@@ -38,9 +38,17 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ))));
     }
 
+    let main_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(chunks[1]);
+
     let mut list_state = ListState::default().with_selected(app.selected_index);
     let list = List::new(list_items).highlight_symbol(">>");
-    frame.render_stateful_widget(list, chunks[1], &mut list_state);
+    let profile_content = Paragraph::new(app.str_from_entry().to_string())
+        .block(Block::default().borders(Borders::LEFT));
+    frame.render_stateful_widget(list, main_chunks[0], &mut list_state);
+    frame.render_widget(profile_content, main_chunks[1]);
 
     let current_navigation_text = vec![
         // The first half of the text
@@ -114,7 +122,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .border_style(Style::default().fg(Color::White))
             .style(Style::default().bg(Color::DarkGray));
 
-        let area = centered_rect(60, 25, frame.area());
+        let area = centered_rect(60, 50, frame.area());
         frame.render_widget(popup_block, area);
 
         let popup_chunks = Layout::default()

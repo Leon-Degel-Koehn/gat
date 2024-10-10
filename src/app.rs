@@ -78,10 +78,19 @@ impl App {
 
     pub fn clear(&mut self) {
         self.alias_input = String::new();
-        self.alias_input = String::new();
         self.username_input = String::new();
         self.email_input = String::new();
         self.token_input = String::new();
         self.currently_editing = None;
+    }
+
+    pub fn str_from_entry(&self) -> String {
+        match self.selected_index {
+            None => String::new(),
+            Some(idx) => format!(
+                "Username: {}\n\nEmail: {}\n\nToken: {}",
+                self.entries[idx].username, self.entries[idx].email, self.entries[idx].pa_token
+            ),
+        }
     }
 }
