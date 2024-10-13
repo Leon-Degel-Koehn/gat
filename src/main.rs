@@ -75,7 +75,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.currently_editing = Some(CurrentlyEditing::Alias);
                     }
                     KeyCode::Char('d') => match app.selected_index {
-                        Some(idx) => app.current_screen = CurrentScreen::Deleting,
+                        Some(_) => app.current_screen = CurrentScreen::Deleting,
                         _ => {}
                     },
                     KeyCode::Char('j') => match app.selected_index {
@@ -107,6 +107,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         }
                     },
                     KeyCode::Char('q') => {
+                        app.save_all_data();
                         return Ok(true);
                     }
                     _ => {}

@@ -1,9 +1,13 @@
+use homedir::my_home;
+use std::fs::{read_to_string, File};
+use std::io::BufReader;
+use std::{fs, path::PathBuf};
+
 pub enum CurrentScreen {
     Main,
     Editing,
     // display a prompt asking the user whether or not they really want to inject the current token
     // data into the current repository
-    Injecting,
     Deleting,
 }
 
@@ -21,6 +25,15 @@ pub struct Entry {
     pub pa_token: String, // personal access token used for login credentials in git
 }
 
+impl Entry {
+    pub fn to_string(&self) -> String {
+        format!(
+            "{},{},{},{}",
+            self.alias, self.username, self.email, self.pa_token
+        )
+    }
+}
+
 pub struct App {
     pub alias_input: String,
     pub username_input: String, // the currently being edited json key.
@@ -30,11 +43,24 @@ pub struct App {
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub selected_index: Option<usize>,
     pub currently_editing: Option<CurrentlyEditing>, // the optional state containing which of the key or value pair the user is editing. It is an option, because when the user is not directly editing a key-value pair, this will be set to `None`.
+    pub save_file: PathBuf,
 }
 
 impl App {
     pub fn new() -> App {
-        App {
+        let parent_dir = match my_home() {
+            Ok(res) => res,
+            Err(_) => None,
+        };
+        let mut save_file = match parent_dir {
+            Some(dir) => dir,
+            None => panic!("No home dir for the user exists, making profile storage impossible"),
+        };
+        save_file.push(".gat");
+        if !save_file.exists() {
+            let _ = File::create(&save_file);
+        }
+        let mut app = App {
             alias_input: String::new(),
             username_input: String::new(),
             email_input: String::new(),
@@ -43,6 +69,28 @@ impl App {
             current_screen: CurrentScreen::Main,
             selected_index: None,
             currently_editing: None,
+            save_file: save_file.clone(),
+        };
+        app.load_entries(save_file);
+        app
+    }
+
+    pub fn load_entries(&mut self, save_file: PathBuf) {
+        let content = fs::read_to_string(save_file).expect("unable to read file");
+        for line in content.lines() {
+            if line.len() < 1 {
+                continue;
+            };
+            let profile_split: Vec<&str> = line.split(',').collect();
+            if profile_split.len() != 4 {
+                continue;
+            }
+            self.entries.push(Entry {
+                alias: String::from(profile_split[0]),
+                username: String::from(profile_split[1]),
+                email: String::from(profile_split[2]),
+                pa_token: String::from(profile_split[3]),
+            });
         }
     }
 
@@ -103,5 +151,14 @@ impl App {
             }
             None => {}
         }
+    }
+
+    pub fn save_all_data(&self) {
+        //let content = fs::read_to_string(save_file).expect("unable to read file");
+        let mut content = String::new();
+        for entry in &self.entries {
+            content.push_str(format!("{}\n", entry.to_string()).as_str());
+        }
+        fs::write(&self.save_file, content).expect("unable to write entry to file");
     }
 }

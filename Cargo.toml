@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+homedir = "0.3.4"
 ratatui = "0.28.1"
