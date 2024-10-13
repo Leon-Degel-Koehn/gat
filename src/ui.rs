@@ -101,8 +101,13 @@ pub fn ui(frame: &mut Frame, app: &App) {
             CurrentScreen::Deleting => {
                 Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
             }
-            //TODO: implement correct mappings for the below modes, placeholders for now
-            _ => Span::styled("[no help implemented]", Style::default().fg(Color::Red)),
+            CurrentScreen::Cloning => Span::styled(
+                "(Enter) confirm/ (Esc) abort",
+                Style::default().fg(Color::Red),
+            ),
+            CurrentScreen::Injecting => {
+                Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
+            }
         }
     };
 
@@ -200,7 +205,25 @@ pub fn ui(frame: &mut Frame, app: &App) {
             Style::default(),
         )
         .add_modifier(Modifier::BOLD);
-        // the `trim: false` will stop the text from being cut off when over the edge of the block
+        let exit_paragraph = Paragraph::new(exit_text)
+            .block(popup_block)
+            .wrap(Wrap { trim: false });
+
+        let area = centered_rect(60, 25, frame.area());
+        frame.render_widget(exit_paragraph, area);
+    }
+
+    if let CurrentScreen::Injecting = app.current_screen {
+        let popup_block = Block::default()
+            .title("y/n")
+            .borders(Borders::ALL)
+            .style(Style::default().bg(Color::DarkGray));
+
+        let exit_text = Text::styled(
+            "Do you want to use this profile in the current repo?",
+            Style::default(),
+        )
+        .add_modifier(Modifier::BOLD);
         let exit_paragraph = Paragraph::new(exit_text)
             .block(popup_block)
             .wrap(Wrap { trim: false });

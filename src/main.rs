@@ -78,6 +78,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         Some(_) => app.current_screen = CurrentScreen::Deleting,
                         _ => {}
                     },
+                    KeyCode::Enter => match app.selected_index {
+                        Some(_) => app.current_screen = CurrentScreen::Injecting,
+                        _ => {}
+                    },
                     KeyCode::Char('j') => match app.selected_index {
                         None => {
                             if app.entries.len() > 0 {
@@ -136,6 +140,16 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 CurrentScreen::Deleting => match key.code {
                     KeyCode::Char('y') => {
                         app.delete_current_entry();
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                    KeyCode::Char('n') => {
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                    _ => {}
+                },
+                CurrentScreen::Injecting => match key.code {
+                    KeyCode::Char('y') => {
+                        app.inject_selected_profile();
                         app.current_screen = CurrentScreen::Main;
                     }
                     KeyCode::Char('n') => {

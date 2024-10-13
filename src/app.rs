@@ -1,7 +1,6 @@
 use homedir::my_home;
 use regex::Regex;
-use std::fs::{read_to_string, File};
-use std::io::BufReader;
+use std::fs::File;
 use std::process::Command;
 use std::{fs, path::PathBuf};
 
@@ -12,6 +11,7 @@ pub enum CurrentScreen {
     // data into the current repository
     Deleting,
     Cloning,
+    Injecting,
 }
 
 pub enum CurrentlyEditing {
@@ -157,6 +157,31 @@ impl App {
         }
     }
 
+    fn exec_cmd(command: String) {
+        let _ = if cfg!(target_os = "windows") {
+            Command::new("cmd")
+                .args(["/C", &command])
+                .output()
+                .expect("failed to execute process")
+        } else {
+            Command::new("sh")
+                .args(["-c", &command])
+                .output()
+                .expect("failed to execute process")
+        };
+    }
+
+    pub fn inject_selected_profile(&self) {
+        let Some(idx) = self.selected_index else {
+            return;
+        };
+        let selected_entry = &self.entries[idx];
+        let inject_username = format!("git config --local user.name {}", selected_entry.username);
+        let inject_email = format!("git config --local user.email {}", selected_entry.email);
+        Self::exec_cmd(inject_username);
+        Self::exec_cmd(inject_email);
+    }
+
     pub fn save_all_data(&self) {
         let mut content = String::new();
         for entry in &self.entries {
@@ -178,16 +203,6 @@ impl App {
             ),
             None => panic!("No profile selected"),
         };
-        let output = if cfg!(target_os = "windows") {
-            Command::new("cmd")
-                .args(["/C", &clone_command])
-                .output()
-                .expect("failed to execute process")
-        } else {
-            Command::new("sh")
-                .args(["-c", &clone_command])
-                .output()
-                .expect("failed to execute process")
-        };
+        Self::exec_cmd(clone_command);
     }
 }
