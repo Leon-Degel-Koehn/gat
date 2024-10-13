@@ -1,6 +1,8 @@
 use homedir::my_home;
+use regex::Regex;
 use std::fs::{read_to_string, File};
 use std::io::BufReader;
+use std::process::Command;
 use std::{fs, path::PathBuf};
 
 pub enum CurrentScreen {
@@ -9,6 +11,7 @@ pub enum CurrentScreen {
     // display a prompt asking the user whether or not they really want to inject the current token
     // data into the current repository
     Deleting,
+    Cloning,
 }
 
 pub enum CurrentlyEditing {
@@ -39,6 +42,7 @@ pub struct App {
     pub username_input: String, // the currently being edited json key.
     pub email_input: String,    // the currently being edited json value.
     pub token_input: String,    // the currently being edited json value.
+    pub clone_url_input: String,
     pub entries: Vec<Entry>, // The representation of our key and value pairs with serde Serialize support
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub selected_index: Option<usize>,
@@ -65,6 +69,7 @@ impl App {
             username_input: String::new(),
             email_input: String::new(),
             token_input: String::new(),
+            clone_url_input: String::new(),
             entries: Vec::new(),
             current_screen: CurrentScreen::Main,
             selected_index: None,
@@ -111,9 +116,7 @@ impl App {
         }
     }
 
-    // Write all entries to the corresponding files
     pub fn store_entries(&mut self) {
-        // TODO: implement properly, for now just output everything to the terminal
         let created_entry = Entry {
             alias: self.alias_input.clone(),
             username: self.username_input.clone(),
@@ -128,6 +131,7 @@ impl App {
         self.username_input = String::new();
         self.email_input = String::new();
         self.token_input = String::new();
+        self.clone_url_input = String::new();
         self.currently_editing = None;
     }
 
@@ -154,11 +158,36 @@ impl App {
     }
 
     pub fn save_all_data(&self) {
-        //let content = fs::read_to_string(save_file).expect("unable to read file");
         let mut content = String::new();
         for entry in &self.entries {
             content.push_str(format!("{}\n", entry.to_string()).as_str());
         }
         fs::write(&self.save_file, content).expect("unable to write entry to file");
+    }
+
+    pub fn clone_repo(&mut self) {
+        let re = Regex::new("^https://(?<url>.+)$").unwrap();
+        let Some(re_match) = re.captures(&self.clone_url_input) else {
+            panic!("Illegal url input")
+        };
+        let url = &re_match["url"];
+        let clone_command = match self.selected_index {
+            Some(idx) => format!(
+                "git clone https://{}:{}@{}",
+                self.entries[idx].username, self.entries[idx].pa_token, url
+            ),
+            None => panic!("No profile selected"),
+        };
+        let output = if cfg!(target_os = "windows") {
+            Command::new("cmd")
+                .args(["/C", &clone_command])
+                .output()
+                .expect("failed to execute process")
+        } else {
+            Command::new("sh")
+                .args(["-c", &clone_command])
+                .output()
+                .expect("failed to execute process")
+        };
     }
 }

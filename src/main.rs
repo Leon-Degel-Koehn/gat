@@ -110,6 +110,27 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.save_all_data();
                         return Ok(true);
                     }
+                    KeyCode::Char('c') => {
+                        app.current_screen = CurrentScreen::Cloning;
+                    }
+                    _ => {}
+                },
+                CurrentScreen::Cloning => match key.code {
+                    KeyCode::Enter => {
+                        app.clone_repo();
+                        app.clear();
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                    KeyCode::Backspace => {
+                        app.clone_url_input.pop();
+                    }
+                    KeyCode::Esc => {
+                        app.clear();
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                    KeyCode::Char(value) => {
+                        app.clone_url_input.push(value);
+                    }
                     _ => {}
                 },
                 CurrentScreen::Deleting => match key.code {
@@ -147,6 +168,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         }
                     }
                     KeyCode::Esc => {
+                        app.clear();
                         app.current_screen = CurrentScreen::Main;
                         app.currently_editing = None;
                     }

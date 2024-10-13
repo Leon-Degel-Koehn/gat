@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 homedir = "0.3.4"
 ratatui = "0.28.1"
+regex = "1.11.0"

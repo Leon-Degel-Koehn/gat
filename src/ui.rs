@@ -165,6 +165,30 @@ pub fn ui(frame: &mut Frame, app: &App) {
         frame.render_widget(token_text, popup_chunks[3]);
     }
 
+    if let CurrentScreen::Cloning = app.current_screen {
+        let popup_block = Block::default()
+            .title("Clone using selected profile")
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(Color::White))
+            .style(Style::default().bg(Color::DarkGray));
+
+        let area = centered_rect(60, 30, frame.area());
+        frame.render_widget(popup_block, area);
+
+        let popup_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(1)
+            .constraints([Constraint::Percentage(100)])
+            .split(area);
+
+        let url_block = Block::default()
+            .title("Paste url (Github: green clone button)")
+            .borders(Borders::ALL);
+        let url_text = Paragraph::new(app.clone_url_input.clone()).block(url_block);
+        frame.render_widget(url_text, popup_chunks[0]);
+    }
+
     if let CurrentScreen::Deleting = app.current_screen {
         let popup_block = Block::default()
             .title("y/n")
