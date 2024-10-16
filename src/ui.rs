@@ -232,7 +232,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .block(popup_block)
             .wrap(Wrap { trim: false });
 
-        let area = centered_rect(60, 25, frame.area());
+        let area = fixed_size_centered_rect(60, 3, frame.area());
         frame.render_widget(exit_paragraph, area);
     }
 }
