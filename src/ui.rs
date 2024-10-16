@@ -178,20 +178,24 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .border_style(Style::default().fg(Color::White))
             .style(Style::default().bg(Color::DarkGray));
 
-        let area = centered_rect(60, 30, frame.area());
+        let area = fixed_size_centered_rect(50, 5, frame.area());
         frame.render_widget(popup_block, area);
 
         let popup_chunks = Layout::default()
             .direction(Direction::Vertical)
             .margin(1)
-            .constraints([Constraint::Percentage(100)])
+            .constraints([
+                Constraint::Fill(1),
+                Constraint::Length(3),
+                Constraint::Fill(1),
+            ])
             .split(area);
 
         let url_block = Block::default()
             .title("Paste url (Github: green clone button)")
             .borders(Borders::ALL);
         let url_text = Paragraph::new(app.clone_url_input.clone()).block(url_block);
-        frame.render_widget(url_text, popup_chunks[0]);
+        frame.render_widget(url_text, popup_chunks[1]);
     }
 
     if let CurrentScreen::Deleting = app.current_screen {
@@ -231,6 +235,29 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(exit_paragraph, area);
     }
+}
+
+// for docu refer to centered_rect which does the same but relative to the parent rect's height
+fn fixed_size_centered_rect(width: u16, height: u16, r: Rect) -> Rect {
+    // Cut the given rectangle into three vertical pieces
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(r.height / 2 - height / 2),
+            Constraint::Length(height),
+            Constraint::Length(r.height / 2 - height / 2),
+        ])
+        .split(r);
+
+    // Then cut the middle vertical piece into three width-wise pieces
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length(r.width / 2 - width / 2),
+            Constraint::Length(width),
+            Constraint::Length(r.width / 2 - width / 2),
+        ])
+        .split(popup_layout[1])[1] // Return the middle chunk
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
