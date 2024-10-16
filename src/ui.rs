@@ -130,7 +130,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .border_style(Style::default().fg(Color::White))
             .style(Style::default().bg(Color::DarkGray));
 
-        let area = centered_rect(60, 50, frame.area());
+        let area = fixed_size_centered_rect(60, 14, frame.area());
         frame.render_widget(popup_block, area);
 
         let popup_chunks = Layout::default()
