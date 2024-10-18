@@ -48,6 +48,7 @@ pub struct App {
     pub selected_index: Option<usize>,
     pub currently_editing: Option<CurrentlyEditing>, // the optional state containing which of the key or value pair the user is editing. It is an option, because when the user is not directly editing a key-value pair, this will be set to `None`.
     pub save_file: PathBuf,
+    pub workdir: String,
 }
 
 impl App {
@@ -75,6 +76,7 @@ impl App {
             selected_index: None,
             currently_editing: None,
             save_file: save_file.clone(),
+            workdir: ".".to_string(),
         };
         app.load_entries(save_file);
         app
@@ -157,15 +159,17 @@ impl App {
         }
     }
 
-    fn exec_cmd(command: String) {
+    fn exec_cmd(&self, command: String) {
         let _ = if cfg!(target_os = "windows") {
             Command::new("cmd")
                 .args(["/C", &command])
+                .current_dir(self.workdir.clone())
                 .output()
                 .expect("failed to execute process")
         } else {
             Command::new("sh")
                 .args(["-c", &command])
+                .current_dir(self.workdir.clone())
                 .output()
                 .expect("failed to execute process")
         };
@@ -178,8 +182,8 @@ impl App {
         let selected_entry = &self.entries[idx];
         let inject_username = format!("git config --local user.name {}", selected_entry.username);
         let inject_email = format!("git config --local user.email {}", selected_entry.email);
-        Self::exec_cmd(inject_username);
-        Self::exec_cmd(inject_email);
+        self.exec_cmd(inject_username);
+        self.exec_cmd(inject_email);
     }
 
     pub fn save_all_data(&self) {
@@ -203,6 +207,15 @@ impl App {
             ),
             None => panic!("No profile selected"),
         };
-        Self::exec_cmd(clone_command);
+        let re_path = Regex::new("(?<path>[^/]*).git").unwrap();
+        let Some(path_match) = re_path.captures(url) else {
+            panic!("Illegal url input")
+        };
+        let clone_path = &path_match["path"];
+        let workdir_backup = self.workdir.clone();
+        self.exec_cmd(clone_command);
+        self.workdir = clone_path.to_string();
+        self.inject_selected_profile();
+        self.workdir = workdir_backup;
     }
 }
