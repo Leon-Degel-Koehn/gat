@@ -60,9 +60,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
             _ => Span::styled("Normal Mode", Style::default().fg(Color::Green)),
         }
         .to_owned(),
-        // A white divider bar to separate the two sections
         Span::styled(" | ", Style::default().fg(Color::White)),
-        // The final section of the text, with hints on what the user is editing
         {
             if let Some(editing) = &app.currently_editing {
                 match editing {
@@ -88,31 +86,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let mode_footer = Paragraph::new(Line::from(current_navigation_text))
         .block(Block::default().borders(Borders::ALL));
 
-    let current_keys_hint = {
-        match app.current_screen {
-            CurrentScreen::Main => Span::styled(
-                "(q) to quit / (%) to create a new profile/ (d) to delete selected profile",
-                Style::default().fg(Color::Red),
-            ),
-            CurrentScreen::Editing => Span::styled(
-                "(ESC) to cancel/(Tab) to switch boxes/(Enter) to complete",
-                Style::default().fg(Color::Red),
-            ),
-            CurrentScreen::Deleting => {
-                Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
-            }
-            CurrentScreen::Cloning => Span::styled(
-                "(Enter) confirm/ (Esc) abort",
-                Style::default().fg(Color::Red),
-            ),
-            CurrentScreen::Injecting => {
-                Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
-            }
-        }
-    };
-
-    let key_notes_footer =
-        Paragraph::new(Line::from(current_keys_hint)).block(Block::default().borders(Borders::ALL));
+    let key_notes_footer = Paragraph::new(Line::from(key_hints(&app.current_screen)))
+        .block(Block::default().borders(Borders::ALL));
 
     let footer_chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -170,41 +145,63 @@ pub fn ui(frame: &mut Frame, app: &App) {
         frame.render_widget(token_text, popup_chunks[3]);
     }
 
-    if let CurrentScreen::Cloning = app.current_screen {
-        let popup_block = Block::default()
-            .title("Clone using selected profile")
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .border_style(Style::default().fg(Color::White))
-            .style(Style::default().bg(Color::DarkGray));
+    let _ = match app.current_screen {
+        CurrentScreen::Cloning => render_cloning_popup(frame, app.clone_url_input.clone()),
+        CurrentScreen::Deleting => render_deleting_popup(frame),
+        CurrentScreen::Injecting => render_injecting_popup(frame),
+        _ => {}
+    };
+}
 
-        let area = fixed_size_centered_rect(50, 5, frame.area());
-        frame.render_widget(popup_block, area);
-
-        let popup_chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .margin(1)
-            .constraints([
-                Constraint::Fill(1),
-                Constraint::Length(3),
-                Constraint::Fill(1),
-            ])
-            .split(area);
-
-        let url_block = Block::default()
-            .title("Paste url (Github: green clone button)")
-            .borders(Borders::ALL);
-        let url_text = Paragraph::new(app.clone_url_input.clone()).block(url_block);
-        frame.render_widget(url_text, popup_chunks[1]);
+fn key_hints<'a>(current_screen: &CurrentScreen) -> Span<'a> {
+    match current_screen {
+        CurrentScreen::Main => Span::styled(
+            "(q) to quit / (%) to create a new profile / (d) to delete selected profile",
+            Style::default().fg(Color::Red),
+        ),
+        CurrentScreen::Editing => Span::styled(
+            "(ESC) to cancel/(Tab) to switch boxes/(Enter) to complete",
+            Style::default().fg(Color::Red),
+        ),
+        CurrentScreen::Deleting => {
+            Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
+        }
+        CurrentScreen::Cloning => Span::styled(
+            "(Enter) confirm/ (Esc) abort",
+            Style::default().fg(Color::Red),
+        ),
+        CurrentScreen::Injecting => {
+            Span::styled("(y) confirm/ (n) abort", Style::default().fg(Color::Red))
+        }
     }
+}
 
-    if let CurrentScreen::Deleting = app.current_screen {
-        let _ = render_deleting_popup(frame);
-    }
+fn render_cloning_popup(frame: &mut Frame, clone_url: String) {
+    let popup_block = Block::default()
+        .title("Clone using selected profile")
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::default().fg(Color::White))
+        .style(Style::default().bg(Color::DarkGray));
 
-    if let CurrentScreen::Injecting = app.current_screen {
-        let _ = render_injecting_popup(frame);
-    }
+    let area = fixed_size_centered_rect(50, 5, frame.area());
+    frame.render_widget(popup_block, area);
+
+    let popup_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(1)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Length(3),
+            Constraint::Fill(1),
+        ])
+        .split(area);
+
+    let url_block = Block::default()
+        .title("Paste url (Github: green clone button)")
+        .borders(Borders::ALL);
+    let url_text = Paragraph::new(clone_url).block(url_block);
+    frame.render_widget(url_text, popup_chunks[1]);
 }
 
 fn render_deleting_popup(frame: &mut Frame) {
