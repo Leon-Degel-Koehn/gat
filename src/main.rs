@@ -17,26 +17,33 @@ use crate::{
     ui::ui,
 };
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // setup terminal
-    enable_raw_mode()?;
+fn init_terminal() -> Terminal<CrosstermBackend<std::io::Stdout>> {
+    enable_raw_mode().unwrap();
     let mut stdout = std::io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+    Terminal::new(backend).unwrap()
+}
+
+fn restore_terminal(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) {
+    disable_raw_mode().unwrap();
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )
+    .unwrap();
+    terminal.show_cursor().unwrap();
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut terminal = init_terminal();
 
     // create app and run it
     let mut app = App::new();
     let res = run_app(&mut terminal, &mut app);
 
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
+    restore_terminal(&mut terminal);
 
     if let Ok(do_print) = res {
         if do_print {
@@ -45,7 +52,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if let Err(err) = res {
         println!("{err:?}");
     }
-
     Ok(())
 }
 
