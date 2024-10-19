@@ -218,23 +218,27 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     if let CurrentScreen::Injecting = app.current_screen {
-        let popup_block = Block::default()
-            .title("y/n")
-            .borders(Borders::ALL)
-            .style(Style::default().bg(Color::DarkGray));
-
-        let exit_text = Text::styled(
-            "Do you want to use this profile in the current repo?",
-            Style::default(),
-        )
-        .add_modifier(Modifier::BOLD);
-        let exit_paragraph = Paragraph::new(exit_text)
-            .block(popup_block)
-            .wrap(Wrap { trim: false });
-
-        let area = fixed_size_centered_rect(60, 3, frame.area());
-        frame.render_widget(exit_paragraph, area);
+        let _ = render_injecting_popup(frame);
     }
+}
+
+fn render_injecting_popup(frame: &mut Frame) {
+    let popup_block = Block::default()
+        .title("y/n")
+        .borders(Borders::ALL)
+        .style(Style::default().bg(Color::DarkGray));
+
+    let exit_text = Text::styled(
+        "Do you want to use this profile in the current repo?",
+        Style::default(),
+    )
+    .add_modifier(Modifier::BOLD);
+    let exit_paragraph = Paragraph::new(exit_text)
+        .block(popup_block)
+        .wrap(Wrap { trim: false });
+
+    let area = fixed_size_centered_rect(60, 3, frame.area());
+    frame.render_widget(exit_paragraph, area);
 }
 
 // for docu refer to centered_rect which does the same but relative to the parent rect's height
