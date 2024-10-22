@@ -5,6 +5,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
     Frame,
 };
+use std::rc::Rc;
 
 use crate::app::{App, CurrentScreen, CurrentlyEditing};
 
@@ -69,16 +70,19 @@ fn render_popups(frame: &mut Frame, app: &App) {
     };
 }
 
-pub fn ui(frame: &mut Frame, app: &App) {
-    let chunks = Layout::default()
+fn split_main_frame(frame: &Frame) -> Rc<[Rect]> {
+    Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(3),
             Constraint::Min(1),
             Constraint::Length(3),
         ])
-        .split(frame.area());
+        .split(frame.area())
+}
 
+pub fn ui(frame: &mut Frame, app: &App) {
+    let chunks = split_main_frame(frame);
     render_title("Manage Git Profiles and Access Tokens", frame, &chunks[0]);
     render_list(frame, &chunks[1], app);
     render_footer(frame, app, &chunks[2]);
