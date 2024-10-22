@@ -8,6 +8,16 @@ use ratatui::{
 
 use crate::app::{App, CurrentScreen, CurrentlyEditing};
 
+pub fn render_title(title: &str, frame: &mut Frame, area: &Rect) {
+    let title_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default());
+
+    let title =
+        Paragraph::new(Text::styled(title, Style::default().fg(Color::Green))).block(title_block);
+    frame.render_widget(title, *area);
+}
+
 pub fn ui(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -18,17 +28,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ])
         .split(frame.area());
 
-    let title_block = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default());
-
-    let title = Paragraph::new(Text::styled(
-        "Manage Git Profiles and Access Tokens",
-        Style::default().fg(Color::Green),
-    ))
-    .block(title_block);
-
-    frame.render_widget(title, chunks[0]);
+    render_title("Manage Git Profiles and Access Tokens", frame, &chunks[0]);
 
     let mut list_items = Vec::<ListItem>::new();
     for entry in &app.entries {
