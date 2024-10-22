@@ -18,18 +18,10 @@ pub fn render_title(title: &str, frame: &mut Frame, area: &Rect) {
     frame.render_widget(title, *area);
 }
 
-pub fn ui(frame: &mut Frame, app: &App) {
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(3),
-            Constraint::Min(1),
-            Constraint::Length(3),
-        ])
-        .split(frame.area());
-
-    render_title("Manage Git Profiles and Access Tokens", frame, &chunks[0]);
-
+/*
+* Render the profile selection list and the profile preview to the frame.
+*/
+fn render_list(frame: &mut Frame, area: &Rect, app: &App) {
     let mut list_items = Vec::<ListItem>::new();
     for entry in &app.entries {
         list_items.push(ListItem::new(Line::from(Span::styled(
@@ -41,7 +33,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let main_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .split(chunks[1]);
+        .split(*area);
 
     let mut list_state = ListState::default().with_selected(app.selected_index);
     let list = List::new(list_items).highlight_symbol(">>");
@@ -49,6 +41,20 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .block(Block::default().borders(Borders::LEFT));
     frame.render_stateful_widget(list, main_chunks[0], &mut list_state);
     frame.render_widget(profile_content, main_chunks[1]);
+}
+
+pub fn ui(frame: &mut Frame, app: &App) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(1),
+            Constraint::Length(3),
+        ])
+        .split(frame.area());
+
+    render_title("Manage Git Profiles and Access Tokens", frame, &chunks[0]);
+    render_list(frame, &chunks[1], app);
 
     let mode_footer = Paragraph::new(Line::from(current_navigation_text(&app)))
         .block(Block::default().borders(Borders::ALL));
