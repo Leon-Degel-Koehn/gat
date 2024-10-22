@@ -11,6 +11,7 @@ use ratatui::{
 };
 
 mod app;
+mod popups;
 mod ui;
 use crate::{
     app::{App, CurrentScreen, CurrentlyEditing},
