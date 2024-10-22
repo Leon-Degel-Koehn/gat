@@ -43,6 +43,32 @@ fn render_list(frame: &mut Frame, area: &Rect, app: &App) {
     frame.render_widget(profile_content, main_chunks[1]);
 }
 
+fn render_footer(frame: &mut Frame, app: &App, area: &Rect) {
+    let mode_footer = Paragraph::new(Line::from(current_navigation_text(app)))
+        .block(Block::default().borders(Borders::ALL));
+
+    let key_notes_footer = Paragraph::new(Line::from(key_hints(&app.current_screen)))
+        .block(Block::default().borders(Borders::ALL));
+
+    let footer_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(*area);
+
+    frame.render_widget(mode_footer, footer_chunks[0]);
+    frame.render_widget(key_notes_footer, footer_chunks[1]);
+}
+
+fn render_popups(frame: &mut Frame, app: &App) {
+    let _ = match app.current_screen {
+        CurrentScreen::Cloning => render_cloning_popup(frame, app.clone_url_input.clone()),
+        CurrentScreen::Deleting => render_deleting_popup(frame),
+        CurrentScreen::Editing => render_editing_popup(frame, &app),
+        CurrentScreen::Injecting => render_injecting_popup(frame),
+        _ => {}
+    };
+}
+
 pub fn ui(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -55,28 +81,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
     render_title("Manage Git Profiles and Access Tokens", frame, &chunks[0]);
     render_list(frame, &chunks[1], app);
-
-    let mode_footer = Paragraph::new(Line::from(current_navigation_text(&app)))
-        .block(Block::default().borders(Borders::ALL));
-
-    let key_notes_footer = Paragraph::new(Line::from(key_hints(&app.current_screen)))
-        .block(Block::default().borders(Borders::ALL));
-
-    let footer_chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .split(chunks[2]);
-
-    frame.render_widget(mode_footer, footer_chunks[0]);
-    frame.render_widget(key_notes_footer, footer_chunks[1]);
-
-    let _ = match app.current_screen {
-        CurrentScreen::Cloning => render_cloning_popup(frame, app.clone_url_input.clone()),
-        CurrentScreen::Deleting => render_deleting_popup(frame),
-        CurrentScreen::Editing => render_editing_popup(frame, &app),
-        CurrentScreen::Injecting => render_injecting_popup(frame),
-        _ => {}
-    };
+    render_footer(frame, app, &chunks[2]);
+    render_popups(frame, app);
 }
 
 fn render_editing_popup(frame: &mut Frame, app: &App) {
