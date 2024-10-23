@@ -49,6 +49,7 @@ pub struct App {
     pub currently_editing: Option<CurrentlyEditing>, // the optional state containing which of the key or value pair the user is editing. It is an option, because when the user is not directly editing a key-value pair, this will be set to `None`.
     pub save_file: PathBuf,
     pub workdir: String,
+    pub closing: bool,
 }
 
 impl App {
@@ -77,6 +78,7 @@ impl App {
             currently_editing: None,
             save_file: save_file.clone(),
             workdir: ".".to_string(),
+            closing: false,
         };
         app.load_entries(save_file);
         app

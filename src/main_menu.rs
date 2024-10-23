@@ -8,6 +8,7 @@ use ratatui::{
     Frame,
 };
 use std::rc::Rc;
+
 fn current_navigation_text<'a>(app: &App) -> Vec<Span<'a>> {
     let mut menu_items = Vec::new();
     menu_items.push(
@@ -43,6 +44,7 @@ fn current_navigation_text<'a>(app: &App) -> Vec<Span<'a>> {
     });
     menu_items
 }
+
 fn render_footer(frame: &mut Frame, app: &App, area: &Rect) {
     let mode_footer = Paragraph::new(Line::from(current_navigation_text(app)))
         .block(Block::default().borders(Borders::ALL));
@@ -69,6 +71,7 @@ fn split_main_frame(frame: &Frame) -> Rc<[Rect]> {
         ])
         .split(frame.area())
 }
+
 pub fn render_title(title: &str, frame: &mut Frame, area: &Rect) {
     let title_block = Block::default()
         .borders(Borders::ALL)
