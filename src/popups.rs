@@ -96,17 +96,18 @@ fn render_editing_popup(frame: &mut Frame, app: &App) {
         .border_style(Style::default().fg(Color::White))
         .style(Style::default().bg(Color::DarkGray));
 
-    let area = fixed_size_centered_rect(60, 14, frame.area());
+    let area = fixed_size_centered_rect(60, 18, frame.area());
     frame.render_widget(popup_block, area);
 
     let popup_chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
         .constraints([
-            Constraint::Percentage(25),
-            Constraint::Percentage(25),
-            Constraint::Percentage(25),
-            Constraint::Percentage(25),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
         ])
         .split(area);
 
@@ -116,6 +117,9 @@ fn render_editing_popup(frame: &mut Frame, app: &App) {
     let mut username_block = Block::default().title("Username").borders(Borders::ALL);
     let mut email_block = Block::default().title("Email").borders(Borders::ALL);
     let mut token_block = Block::default().title("PA-Token").borders(Borders::ALL);
+    let mut nickname_block = Block::default()
+        .title("Nickname (Optional)")
+        .borders(Borders::ALL);
 
     let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
 
@@ -124,14 +128,17 @@ fn render_editing_popup(frame: &mut Frame, app: &App) {
         CurrentlyEditing::Username => username_block = username_block.style(active_style),
         CurrentlyEditing::Email => email_block = email_block.style(active_style),
         CurrentlyEditing::Token => token_block = token_block.style(active_style),
+        CurrentlyEditing::Nickname => nickname_block = nickname_block.style(active_style),
     };
 
     let alias_text = Paragraph::new(app.alias_input.clone()).block(alias_block);
     let username_text = Paragraph::new(app.username_input.clone()).block(username_block);
     let email_text = Paragraph::new(app.email_input.clone()).block(email_block);
     let token_text = Paragraph::new(app.token_input.clone()).block(token_block);
+    let nickname_text = Paragraph::new(app.nickname_input.clone()).block(nickname_block);
     frame.render_widget(alias_text, popup_chunks[0]);
     frame.render_widget(username_text, popup_chunks[1]);
     frame.render_widget(email_text, popup_chunks[2]);
     frame.render_widget(token_text, popup_chunks[3]);
+    frame.render_widget(nickname_text, popup_chunks[4]);
 }

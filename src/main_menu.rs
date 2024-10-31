@@ -37,6 +37,9 @@ fn current_navigation_text<'a>(app: &App) -> Vec<Span<'a>> {
                 CurrentlyEditing::Token => {
                     Span::styled("Editing token", Style::default().fg(Color::Green))
                 }
+                CurrentlyEditing::Nickname => {
+                    Span::styled("Editing nickname", Style::default().fg(Color::Green))
+                }
             }
         } else {
             Span::styled("Not Editing Anything", Style::default().fg(Color::DarkGray))
