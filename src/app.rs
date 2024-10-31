@@ -182,8 +182,8 @@ impl App {
             return;
         };
         let selected_entry = &self.entries[idx];
-        let inject_username = format!("git config --local user.name {}", selected_entry.username);
-        let inject_email = format!("git config --local user.email {}", selected_entry.email);
+        let inject_username = format!("git config --local user.name '{}'", selected_entry.username);
+        let inject_email = format!("git config --local user.email '{}'", selected_entry.email);
         self.exec_cmd(inject_username);
         self.exec_cmd(inject_email);
     }
