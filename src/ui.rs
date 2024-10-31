@@ -1,13 +1,11 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style, Stylize},
-    text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
+    style::{Color, Style},
+    text::Span,
     Frame,
 };
-use std::rc::Rc;
 
-use crate::app::{App, CurrentScreen, CurrentlyEditing};
+use crate::app::{App, CurrentScreen};
 use crate::main_menu::render_main_menu;
 use crate::popups::render_active_popups;
 

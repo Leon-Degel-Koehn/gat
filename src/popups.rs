@@ -1,12 +1,11 @@
 use crate::ui::fixed_size_centered_rect;
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style, Stylize},
-    text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
+    text::Text,
+    widgets::{Block, BorderType, Borders, Paragraph, Wrap},
     Frame,
 };
-use std::rc::Rc;
 
 use crate::app::{App, CurrentScreen, CurrentlyEditing};
 
