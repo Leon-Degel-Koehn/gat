@@ -183,6 +183,9 @@ fn handle_key_press(key: KeyEvent, app: &mut App) {
                         CurrentlyEditing::Token => {
                             app.token_input.pop();
                         }
+                        CurrentlyEditing::Nickname => {
+                            app.nickname_input.pop();
+                        }
                     }
                 }
             }
@@ -208,6 +211,9 @@ fn handle_key_press(key: KeyEvent, app: &mut App) {
                         }
                         CurrentlyEditing::Token => {
                             app.token_input.push(value);
+                        }
+                        CurrentlyEditing::Nickname => {
+                            app.nickname_input.push(value);
                         }
                     }
                 }

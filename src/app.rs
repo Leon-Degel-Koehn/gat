@@ -19,6 +19,7 @@ pub enum CurrentlyEditing {
     Username,
     Email,
     Token,
+    Nickname,
 }
 
 pub struct Entry {
@@ -26,27 +27,29 @@ pub struct Entry {
     pub username: String, // the git username to be used for commits
     pub email: String,    // email used in commits
     pub pa_token: String, // personal access token used for login credentials in git
+    pub nickname: String,
 }
 
 impl Entry {
     pub fn to_string(&self) -> String {
         format!(
-            "{},{},{},{}",
-            self.alias, self.username, self.email, self.pa_token
+            "{},{},{},{},{}",
+            self.alias, self.username, self.email, self.pa_token, self.nickname
         )
     }
 }
 
 pub struct App {
     pub alias_input: String,
-    pub username_input: String, // the currently being edited json key.
-    pub email_input: String,    // the currently being edited json value.
-    pub token_input: String,    // the currently being edited json value.
+    pub username_input: String,
+    pub email_input: String,
+    pub token_input: String,
+    pub nickname_input: String,
     pub clone_url_input: String,
-    pub entries: Vec<Entry>, // The representation of our key and value pairs with serde Serialize support
-    pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
+    pub entries: Vec<Entry>,
+    pub current_screen: CurrentScreen,
     pub selected_index: Option<usize>,
-    pub currently_editing: Option<CurrentlyEditing>, // the optional state containing which of the key or value pair the user is editing. It is an option, because when the user is not directly editing a key-value pair, this will be set to `None`.
+    pub currently_editing: Option<CurrentlyEditing>,
     pub save_file: PathBuf,
     pub workdir: String,
     pub closing: bool,
@@ -71,6 +74,7 @@ impl App {
             username_input: String::new(),
             email_input: String::new(),
             token_input: String::new(),
+            nickname_input: String::new(),
             clone_url_input: String::new(),
             entries: Vec::new(),
             current_screen: CurrentScreen::Main,
@@ -91,7 +95,7 @@ impl App {
                 continue;
             };
             let profile_split: Vec<&str> = line.split(',').collect();
-            if profile_split.len() != 4 {
+            if profile_split.len() < 4 {
                 continue;
             }
             self.entries.push(Entry {
@@ -99,6 +103,13 @@ impl App {
                 username: String::from(profile_split[1]),
                 email: String::from(profile_split[2]),
                 pa_token: String::from(profile_split[3]),
+                nickname: {
+                    if profile_split.len() > 4 {
+                        String::from(profile_split[4])
+                    } else {
+                        "".to_string()
+                    }
+                },
             });
         }
     }
@@ -113,7 +124,12 @@ impl App {
                     self.currently_editing = Some(CurrentlyEditing::Email)
                 }
                 CurrentlyEditing::Email => self.currently_editing = Some(CurrentlyEditing::Token),
-                CurrentlyEditing::Token => self.currently_editing = Some(CurrentlyEditing::Alias),
+                CurrentlyEditing::Token => {
+                    self.currently_editing = Some(CurrentlyEditing::Nickname)
+                }
+                CurrentlyEditing::Nickname => {
+                    self.currently_editing = Some(CurrentlyEditing::Alias)
+                }
             };
         } else {
             self.currently_editing = Some(CurrentlyEditing::Alias);
@@ -126,6 +142,7 @@ impl App {
             username: self.username_input.clone(),
             email: self.email_input.clone(),
             pa_token: self.token_input.clone(),
+            nickname: self.nickname_input.clone(),
         };
         self.entries.push(created_entry);
     }
@@ -135,6 +152,7 @@ impl App {
         self.username_input = String::new();
         self.email_input = String::new();
         self.token_input = String::new();
+        self.nickname_input = String::new();
         self.clone_url_input = String::new();
         self.currently_editing = None;
     }
@@ -143,8 +161,11 @@ impl App {
         match self.selected_index {
             None => String::new(),
             Some(idx) => format!(
-                "Username: {}\n\nEmail: {}\n\nToken: {}",
-                self.entries[idx].username, self.entries[idx].email, self.entries[idx].pa_token
+                "Username: {}\n\nEmail: {}\n\nToken: {}\n\nNickname: {}",
+                self.entries[idx].username,
+                self.entries[idx].email,
+                self.entries[idx].pa_token,
+                self.entries[idx].nickname
             ),
         }
     }
@@ -182,7 +203,12 @@ impl App {
             return;
         };
         let selected_entry = &self.entries[idx];
-        let inject_username = format!("git config --local user.name '{}'", selected_entry.username);
+        let author_name = if selected_entry.nickname.len() > 0 {
+            selected_entry.nickname.clone()
+        } else {
+            selected_entry.username.clone()
+        };
+        let inject_username = format!("git config --local user.name '{}'", author_name);
         let inject_email = format!("git config --local user.email '{}'", selected_entry.email);
         self.exec_cmd(inject_username);
         self.exec_cmd(inject_email);
